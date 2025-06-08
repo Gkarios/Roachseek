@@ -39,6 +39,8 @@ mqtt-web-visualizer
 
    ``
    To fetch local weather, you need an OpenWeatherMap API key. Inside app.py use it on the empty OPENWEATHER_API_KEY variable and change the location of the q=_ field to your local city
+
+   Delete the detections.db, to reset the detection data, it automatically saves and loads your db.
    
    ``
 
