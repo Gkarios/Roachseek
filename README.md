@@ -23,7 +23,8 @@ mqtt-web-visualizer
 
 1. **Clone the repository:**
    ```
-   git clone <repository-url>
+   git clone https://github.com/Gkarios/Roachseek.git
+   cd Roachseek
    ```
 
 2. **Install dependencies:**
