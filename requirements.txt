@@ -1,0 +1,6 @@
+Flask
+requests
+datetime
+paho-mqtt
+flask-socketio
+flask-sqlalchemy

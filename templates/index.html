@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoachSeek</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center;">RoachSeek</h1>
+        <div id="data-display">
+            <h2>Hour of the day</h2>
+        </div>
+        <canvas id="mqttChart" width="400" height="200"></canvas>
+        <h2>Temperature Histogram</h2>
+        <canvas id="tempChart" width="400" height="200"></canvas>
+    </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        const ctx = document.getElementById('mqttChart').getContext('2d');
+        const chartData = {
+            labels: [], // Timestamps
+            datasets: [{
+                label: 'Sound Detected',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                tension: 0.1
+            }]
+        };
+        let rawCounts = [];
+
+        function updateChart(hist) {
+            chartData.labels = hist.labels;
+            chartData.datasets[0].data = hist.data;
+            rawCounts = hist.raw;
+            mqttChart.update();
+        }
+
+        const mqttChart = new Chart(ctx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                scales: {
+                    x: { 
+                        title: { display: true, text: 'Hour' }, 
+                        type: 'category'
+                    },
+                    y: { 
+                        beginAtZero: true,
+                        title: { display: true, text: 'Detection Percentage (%)' }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                const percent = context.dataset.data[idx];
+                                const raw = rawCounts[idx] || 0;
+                                return ` ${percent}% (${raw} detections)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Temperature histogram setup
+        const tempCtx = document.getElementById('tempChart').getContext('2d');
+        const tempChartData = {
+            labels: [],
+            datasets: [{
+                label: 'Detections (%)',
+                data: [],
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                tension: 0.1
+            }]
+        };
+        let tempRawCounts = [];
+
+        function updateTempChart(hist) {
+            tempChartData.labels = hist.labels;
+            tempChartData.datasets[0].data = hist.data;
+            tempRawCounts = hist.raw;
+            tempChart.update();
+        }
+
+        const tempChart = new Chart(tempCtx, {
+            type: 'bar',
+            data: tempChartData,
+            options: {
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Temperature (°C)' },
+                        type: 'category'
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Detection Percentage (%)' }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                const percent = context.dataset.data[idx];
+                                const raw = tempRawCounts[idx] || 0;
+                                return ` ${percent}% (${raw} detections)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Update both charts on MQTT message
+        const socket = io();
+        socket.on('mqtt_message', function(data) {
+            document.getElementById('latest-data').innerText = `Received at ${data.timestamp}: ${data.message}`;
+            fetch('/histogram').then(r => r.json()).then(updateChart);
+            fetch('/histogram_temp').then(r => r.json()).then(updateTempChart);
+        });
+
+        // On page load, fetch both histograms
+        window.onload = function() {
+            fetch('/histogram').then(r => r.json()).then(updateChart);
+            fetch('/histogram_temp').then(r => r.json()).then(updateTempChart);
+        };
+    </script>
+</body>
+</html>
