@@ -13,11 +13,11 @@
     <div class="container">
         <h1 style="text-align: center;">RoachSeek</h1>
         <div id="data-display">
-            <h2>Hour of the day</h2>
             <p id="latest-data"></p>
+            <h2>Hour of the day</h2>
         </div>
         <canvas id="mqttChart" width="400" height="200"></canvas>
-        <h2>Temperature Histogram</h2>
+        <h2>Temperature Distribution</h2>
         <canvas id="tempChart" width="400" height="200"></canvas>
     </div>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -26,7 +26,7 @@
         const chartData = {
             labels: [], // Timestamps
             datasets: [{
-                label: 'Sound Detected',
+                label: 'Detections (%)',
                 data: [],
                 backgroundColor: 'rgba(75, 192, 192, 0.5)',
                 borderColor: 'rgba(75, 192, 192, 1)',
@@ -53,7 +53,7 @@
                     },
                     y: { 
                         beginAtZero: true,
-                        title: { display: true, text: 'Detection Percentage (%)' }
+                        title: { display: true, text: 'Detections (%)' }
                     }
                 },
                 plugins: {
